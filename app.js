@@ -5,21 +5,30 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var booksRouter = require('./routes/books');
 
 var app = express();
 
 // Testing connection to database  
 var sequelize = require('./models').sequelize;
 
-sequelize.authenticate()
-  .then(() => {
-  console.log('Connection has been established successfully.');
-}).then(() => {
-  sequelize.sync(); 
-}).catch((error) => {
-  console.error('Unable to connect to the database: ', error);
-});
+(async () => {
+  try {
+    await sequelize.authenticate(); 
+    console.log('Connection has been established successfully.');
+    sequelize.sync(); 
+  } catch(error) {
+    console.error('Unable to connect to the database: ', error);
+  }
+})();
+// sequelize.authenticate()
+//   .then(() => {
+//   console.log('Connection has been established successfully.');
+// }).then(() => {
+//   sequelize.sync(); 
+// }).catch((error) => {
+//   console.error('Unable to connect to the database: ', error);
+// });
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -32,17 +41,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/books', booksRouter);
 
-// imports the error handlers - code reused from Unit 6 project 
-const errorHandlers = require('./errorHandlers'); 
-app.use(errorHandlers.handle404Error); 
-app.use(errorHandlers.handleGlobalError); 
-
-
-
-
-/*
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -54,10 +54,15 @@ app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+  if (err.status === 404) {
+    res.render('page-not-found')
+  } else {
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+  }
+
 });
-*/
+
 
 module.exports = app;
