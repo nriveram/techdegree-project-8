@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const Book = require('../models').Book;
+var createError = require('http-errors');
 
 /* Handler function to wrap each route. */
 function asyncHandler(cb){
@@ -42,12 +43,13 @@ router.post('/new', asyncHandler(async (req, res) => {
 }));
 
 /* GET - Show book detail form  */
-router.get("/:id", asyncHandler(async (req, res) => {
+router.get("/:id", asyncHandler(async (req, res, next) => {
   const book = await Book.findByPk(req.params.id);
   if(book) {
     res.render('update-book', { book: book, title: book.title });  
   } else {
-    res.sendStatus(404);
+    //res.sendStatus(404); 
+    next(createError(404));
   }
 }));
 
@@ -74,12 +76,13 @@ router.post('/:id', asyncHandler(async (req, res) => {
 }));
 
 /* GET - Deletes book. */
-router.get("/:id/delete", asyncHandler(async (req, res) => {
+router.get("/:id/delete", asyncHandler(async (req, res, next) => {
   const book = await Book.findByPk(req.params.id);
   if(book) {
     res.render("update-book", { book: book, title: "Delete Book" });
   } else {
-    res.sendStatus(404);
+    //res.sendStatus(404);
+    next(createError(404));
   }
 }));
 
@@ -92,6 +95,10 @@ router.post('/:id/delete', asyncHandler(async (req ,res) => {
   } else {
     res.sendStatus(404);
   }
+}));
+
+router.get('*', asyncHandler(async (req, res) => {
+  res.sendStatus(404); 
 }));
 
 module.exports = router;
